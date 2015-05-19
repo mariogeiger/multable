@@ -203,7 +203,7 @@ QList<MulTable> MulTable::brute()
     MulTable table(*this);
     table.setProduct(ii, jj, a);
     solutions.append(table.brute());
-    if (solutions.size() > 10) break;
+    if (solutions.size() > 20) break;
   }
 
   return solutions;

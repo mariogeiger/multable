@@ -1,33 +1,45 @@
-#include "widget.hh"
-#include <QVBoxLayout>
+#include "mainwindow.hh"
+#include <QHBoxLayout>
+#include <QStatusBar>
+#include <QMenuBar>
+#include <QMenu>
+#include <QWidgetAction>
+#include <QSpinBox>
+#include <QLabel>
 
-Widget::Widget(QWidget *parent)
-  : QWidget(parent)
+MainWindow::MainWindow(QWidget *parent)
+  : QMainWindow(parent)
 {
   table = new QTableWidget(this);
-  spin = new QSpinBox(this); spin->setRange(1, 99); spin->setValue(3);
-  label = new QLabel(this);
-  button = new QPushButton("Auto-complete", this);
 
+  QMenu* menu = menuBar()->addMenu("Menu");
+  menu->addAction("Auto-complete", this, SLOT(autoComplete()), QKeySequence(tr("Ctrl+S")));
+
+
+  QWidget* widget = new QWidget(menu);
+  QHBoxLayout* layout = new QHBoxLayout(widget);
+
+  QSpinBox* spin = new QSpinBox(this); spin->setRange(1, 99); spin->setValue(3);
   QObject::connect(spin, SIGNAL(valueChanged(int)), this, SLOT(setOrder(int)));
-  QObject::connect(button, SIGNAL(clicked()), this, SLOT(autoComplete()));
 
-  QVBoxLayout* l = new QVBoxLayout(this);
+  layout->addWidget(new QLabel("Order :", widget));
+  layout->addWidget(spin);
 
-  l->addWidget(spin);
-  l->addWidget(table);
-  l->addWidget(button);
-  l->addWidget(label);
+  QWidgetAction *action = new QWidgetAction(menu);
+  action->setDefaultWidget(widget);
+  menu->addAction(action);
+
+  setCentralWidget(table);
 
   setOrder(3);
 }
 
-Widget::~Widget()
+MainWindow::~MainWindow()
 {
 
 }
 
-void Widget::setOrder(int order)
+void MainWindow::setOrder(int order)
 {
   if (order < 1) return;
 
@@ -54,27 +66,26 @@ void Widget::setOrder(int order)
   QObject::connect(table, SIGNAL(cellChanged(int,int)), this, SLOT(valueChanged()));
 }
 
-void Widget::valueChanged()
+void MainWindow::valueChanged()
 {
-  label->clear();
+  statusBar()->clearMessage();
   QObject::disconnect(table, SIGNAL(cellChanged(int,int)), this, SLOT(valueChanged()));
 
-  MulTable t = readTable();
-  checkTable(t);
+  checkTable(readTable());
 
   QObject::connect(table, SIGNAL(cellChanged(int,int)), this, SLOT(valueChanged()));
 }
 
-void Widget::autoComplete()
+void MainWindow::autoComplete()
 {
   QObject::disconnect(table, SIGNAL(cellChanged(int,int)), this, SLOT(valueChanged()));
-  label->clear();
+  statusBar()->clearMessage();
 
   MulTable t = readTable();
   int result = t.isGroup();
 
   if (result == -1) {
-    label->setText("Cannot auto-complete invalid table");
+    statusBar()->showMessage("Auto-complete : error in the table");
   } else if (result == 0) {
 
     QList<MulTable> solutions = t.brute();
@@ -82,15 +93,18 @@ void Widget::autoComplete()
     if (solutions.size() == 1)
     {
       writeTable(solutions.first());
-      label->setText("Complete solution found !");
+      statusBar()->showMessage("Auto-complete : solution found !");
     }
 
     if (solutions.isEmpty()) {
-      label->setText("There where an tricky error in the table");
+      statusBar()->showMessage("Auto-complete : error detected in the table");
     }
 
     if (solutions.size() > 1) {
-      label->setText(QString("%1 solutions found").arg(solutions.size()));
+      if (solutions.size() > 20)
+        statusBar()->showMessage("Auto-complete : more than 20 solutions found");
+      else
+        statusBar()->showMessage(QString("Auto-complete : %1 solutions found").arg(solutions.size()));
 
       writeTable(t);
     }
@@ -99,21 +113,20 @@ void Widget::autoComplete()
   QObject::connect(table, SIGNAL(cellChanged(int,int)), this, SLOT(valueChanged()));
 }
 
-void Widget::checkTable(MulTable& t)
+void MainWindow::checkTable(MulTable t)
 {
+  t.reduce();
   int result = t.isGroup();
 
-  label->clear();
-  if (result == 1) {
-    label->setText("This is a group !");
-  } else if (result == -1) {
-    label->setText("There is an error somewhere !");
+  statusBar()->clearMessage();
+  if (result == -1) {
+    statusBar()->showMessage("There is an error in the table");
   }
 }
 
-MulTable Widget::readTable()
+MulTable MainWindow::readTable()
 {
-  MulTable t(spin->value());
+  MulTable t(table->columnCount());
   for (int i = 0; i < table->rowCount(); ++i) {
     for (int j = 0; j < table->columnCount(); ++j) {
       QTableWidgetItem* item = table->item(i, j);
@@ -134,7 +147,7 @@ MulTable Widget::readTable()
   return t;
 }
 
-void Widget::writeTable(const MulTable& t)
+void MainWindow::writeTable(const MulTable& t)
 {
   for (int i = 0; i < table->rowCount(); ++i) {
     for (int j = 0; j < table->columnCount(); ++j) {

@@ -1,20 +1,17 @@
 #ifndef WIDGET_HH
 #define WIDGET_HH
 
-#include <QWidget>
+#include <QMainWindow>
 #include <QTableWidget>
-#include <QSpinBox>
-#include <QLabel>
-#include <QPushButton>
 #include "multable.hh"
 
-class Widget : public QWidget
+class MainWindow : public QMainWindow
 {
   Q_OBJECT
 
 public:
-  Widget(QWidget *parent = 0);
-  ~Widget();
+  MainWindow(QWidget *parent = 0);
+  ~MainWindow();
 
 private slots:
   void setOrder(int order);
@@ -22,15 +19,12 @@ private slots:
   void autoComplete();
 
 private:
-  void checkTable(MulTable& t);
+  void checkTable(MulTable t);
   MulTable readTable();
   void writeTable(const MulTable& t);
 
 protected:
   QTableWidget* table;
-  QSpinBox* spin;
-  QLabel* label;
-  QPushButton* button;
 };
 
 #endif // WIDGET_HH

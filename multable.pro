@@ -14,8 +14,9 @@ TEMPLATE = app
 
 
 SOURCES += main.cc\
-        widget.cc \
-    multable.cc
+    multable.cc \
+    mainwindow.cc
 
-HEADERS  += widget.hh \
-    multable.hh
+HEADERS  += \
+    multable.hh \
+    mainwindow.hh

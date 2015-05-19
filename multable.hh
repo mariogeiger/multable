@@ -27,11 +27,12 @@ public:
   int order() const { return content.size(); }
 
   bool isComplete() const;
+  bool hasEmptyEntry() const;
   int isGroup() const;
 
   bool reduce();
   QList<MulTable> brute();
-  bool hasEmptyEntry() const;
+
 private:
   QVector<QVector<QList<int>>> content;
 };
