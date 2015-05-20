@@ -13,15 +13,10 @@ MulTable::MulTable(int order)
   }
 }
 
-bool MulTable::setProduct(int a, int b, int c)
+void MulTable::setProduct(int a, int b, int c)
 {
-  if (content[a][b].size() == 1 && content[a][b].first() == c)
-    return false;
-
-  bool empty = content[a][b].isEmpty();
   content[a][b].clear();
   content[a][b] << c;
-  return !empty;
 }
 
 bool MulTable::isComplete() const
@@ -111,7 +106,7 @@ int MulTable::isGroup() const
 
 bool MulTable::reduce()
 {
-  bool didit = false;
+  MulTable original = *this;
 
   QVector<int> is;
   for (int i = 0; i < order(); ++i) {
@@ -128,8 +123,8 @@ bool MulTable::reduce()
 
   if (e != -1) {
     for (int i = 0; i < order(); ++i) {
-      didit = setProduct(i,e,i) || didit;
-      didit = setProduct(e,i,i) || didit;
+      filterProduct(i,e,i);
+      filterProduct(e,i,i);
     }
   }
 
@@ -140,14 +135,14 @@ bool MulTable::reduce()
       if (a != -1) {
         for (int k = 0; k < order(); ++k) {
           if (k != j)
-            didit = content[i][k].removeAll(a) > 0 || didit;
+            content[i][k].removeAll(a);
           if (k != i)
-            didit = content[k][j].removeAll(a) > 0 || didit;
+            content[k][j].removeAll(a);
         }
         if (e != -1) {
           // only one inverse
           if (a == e) {
-            didit = setProduct(j,i,e) || didit;
+            filterProduct(j,i,e);
           }
         }
       }
@@ -163,21 +158,47 @@ bool MulTable::reduce()
         if (a != -1 && b != -1) {
           int c = product(a, k);
           if (c != -1) {
-            didit = setProduct(i, b, c) || didit;
+            filterProduct(i, b, c);
           }
         }
       }
     }
   }
 
-  return didit;
+  // if only 1 possibility in a row/column
+  for (int i = 0; i < order(); ++i) { // foreach row
+    for (int a = 0; a < order(); ++a) { // foreach value
+      QList<int> occur;
+      for (int j = 0; j < order(); ++j) {
+        if (content[i][j].contains(a)) occur << j;
+      }
+      if (occur.size() == 1) {
+        content[i][occur.first()].clear();
+        content[i][occur.first()] << a;
+      }
+    }
+  }
+  for (int j = 0; j < order(); ++j) { // foreach column
+    for (int a = 0; a < order(); ++a) { // foreach value
+      QList<int> occur;
+      for (int i = 0; i < order(); ++i) {
+        if (content[i][j].contains(a)) occur << i;
+      }
+      if (occur.size() == 1) {
+        content[occur.first()][j].clear();
+        content[occur.first()][j] << a;
+      }
+    }
+  }
+
+  return original != *this;
 }
 
 QList<MulTable> MulTable::brute()
 {
   QList<MulTable> solutions;
 
-  for (int i = 0; i < 4; ++i) reduce();
+  while (reduce());
 
   int r = isGroup();
   if (r == -1) return solutions;
@@ -207,6 +228,26 @@ QList<MulTable> MulTable::brute()
   }
 
   return solutions;
+}
+
+bool MulTable::operator !=(const MulTable& other) const
+{
+  return content != other.content;
+}
+
+bool MulTable::operator ==(const MulTable& other) const
+{
+  return content == other.content;
+}
+
+void MulTable::filterProduct(int i, int j, int r)
+{
+  if (content[i][j].contains(r)) {
+    content[i][j].clear();
+    content[i][j] << r;
+  } else {
+    content[i][j].clear();
+  }
 }
 
 bool MulTable::hasEmptyEntry() const

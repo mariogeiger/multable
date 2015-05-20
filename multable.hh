@@ -10,7 +10,7 @@ class MulTable
 public:
   MulTable(int order = 0);
 
-  bool setProduct(int a, int b, int c);
+  void setProduct(int a, int b, int c);
   void setProductList(int a, int b, QList<int> c) {
     content[a][b] = c;
   }
@@ -33,7 +33,13 @@ public:
   bool reduce();
   QList<MulTable> brute();
 
+
+  bool operator !=(const MulTable& other) const;
+  bool operator ==(const MulTable& other) const;
+
 private:
+  void filterProduct(int i, int j, int r);
+
   QVector<QVector<QList<int>>> content;
 };
 

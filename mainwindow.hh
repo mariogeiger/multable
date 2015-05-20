@@ -16,7 +16,10 @@ public:
 private slots:
   void setOrder(int order);
   void valueChanged();
+  void valueSelected();
   void autoComplete();
+  void clearTable();
+  void clearSelection();
 
 private:
   void checkTable(MulTable t);
