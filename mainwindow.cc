@@ -145,6 +145,24 @@ void MainWindow::autoComplete()
         statusBar()->showMessage(QString("Auto-complete : %1 solutions found").arg(solutions.size()));
 
       writeTable(t);
+      for (int i = 0; i < table->rowCount(); ++i) {
+        for (int j = 0; j < table->columnCount(); ++j) {
+          QTableWidgetItem* item = table->item(i, j);
+          if (!item) {
+            table->setItem(i, j, new QTableWidgetItem());
+          }
+
+          int a = t.product(i,j);
+          if (a == -1) {
+            QStringList sl;
+            for (MulTable& x : solutions) {
+              sl << QString::number(x.product(i,j)+1);
+            }
+            sl = QStringList::fromSet(sl.toSet());
+            item->setData(Qt::ToolTipRole, sl.join(","));
+          }
+        }
+      }
     }
   }
 
