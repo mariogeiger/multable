@@ -31,7 +31,9 @@ public:
   int isGroup() const;
 
   bool reduce();
-  QList<MulTable> brute();
+	QList<MulTable> brute(int limit = 20);
+
+	QList<int> eqclass(int a) const;
 
 
   bool operator !=(const MulTable& other) const;

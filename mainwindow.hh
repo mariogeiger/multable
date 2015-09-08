@@ -20,6 +20,7 @@ private slots:
   void autoComplete();
   void clearTable();
   void clearSelection();
+	void getEqClass();
 
 private:
   void checkTable(MulTable t);

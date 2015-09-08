@@ -42,6 +42,11 @@ MainWindow::MainWindow(QWidget *parent)
   decrease->setShortcut(QKeySequence("Ctrl+J"));
   QObject::connect(decrease, &QAction::triggered, [=] { spin->setValue(spin->value() - 1); });
 
+	QAction* eqclass = menu->addAction("Equivalent class of selected column");
+	eqclass->setShortcut(QKeySequence("Ctrl+E"));
+	QObject::connect(eqclass, &QAction::triggered, this, &MainWindow::getEqClass);
+
+
   menu->addAction("Clear selection", this, SLOT(clearSelection()), QKeySequence(Qt::Key_Delete));
 
   setCentralWidget(table);
@@ -158,9 +163,9 @@ void MainWindow::autoComplete()
             for (MulTable& x : solutions) {
               sl << QString::number(x.product(i,j)+1);
             }
-            sl = QStringList::fromSet(sl.toSet());
-            item->setData(Qt::ToolTipRole, sl.join(","));
-          }
+			sl = QStringList::fromSet(sl.toSet());
+			item->setData(Qt::ToolTipRole, sl.join(","));
+		}
         }
       }
     }
@@ -187,7 +192,23 @@ void MainWindow::clearSelection()
   for (QTableWidgetItem* item : table->selectedItems()) {
     item->setText("");
     item->setData(Qt::ToolTipRole, "");
-  }
+	}
+}
+
+void MainWindow::getEqClass()
+{
+	if (table->selectedItems().isEmpty()) return;
+	QTableWidgetItem* item = table->selectedItems().first();
+	int a = table->column(item);
+	QList<int> eq = readTable().eqclass(a);
+	if (eq.isEmpty()) return;
+
+	QStringList sl;
+	for (int x : eq) sl << QString::number(x + 1);
+
+	QString text = "The eq. class of %1 is {%2}";
+	text = text.arg(a + 1).arg(sl.join(", "));
+	statusBar()->showMessage(text);
 }
 
 void MainWindow::checkTable(MulTable t)
