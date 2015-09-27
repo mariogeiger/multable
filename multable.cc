@@ -194,9 +194,12 @@ bool MulTable::reduce()
 	return original != *this;
 }
 
-QList<MulTable> MulTable::brute(int limit)
+QList<MulTable> MulTable::brute(int& limit, bool root)
 {
 	QList<MulTable> solutions;
+	if (limit <= 0) {
+		return solutions;
+	}
 
 	while (reduce());
 
@@ -221,13 +224,16 @@ QList<MulTable> MulTable::brute(int limit)
 
 	QList<int> as = content[ii][jj];
 	for (int a : as) {
+		limit--;
 		MulTable table(*this);
 		table.setProduct(ii, jj, a);
-		solutions.append(table.brute());
-		if (solutions.size() > limit) break;
+		solutions.append(table.brute(limit, false));
+		if (limit <= 0) {
+			break;
+		}
 	}
 
-	if (solutions.size() <= limit) {
+	if (root && limit > 0) {
 		for (int i = 0; i < order(); ++i) {
 			for (int j = 0; j < order(); ++j) {
 				int k = -1;
