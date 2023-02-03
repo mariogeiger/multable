@@ -116,7 +116,7 @@ bool MulTable::reduce()
 				canBeTheInverse = false;
 			}
 		}
-		if (canBeTheInverse) is.append(i);
+        if (canBeTheInverse) is.append(i);
 	}
 	int e = -1;
 	if (is.size() == 1) e = is.first();
